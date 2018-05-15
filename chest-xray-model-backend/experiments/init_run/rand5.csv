@@ -1,0 +1,6 @@
+Image Index,Patient ID,Finding Labels,Atelectasis,Cardiomegaly,Effusion,Infiltration,Mass,Nodule,Pneumonia,Pneumothorax,Consolidation,Edema,Emphysema,Fibrosis,Pleural_Thickening,Hernia
+00000001_001.png,21,Nodule,0,0,0,0,0,1,0,0,0,0,0,0,0,0
+00000001_002.png,21,Infiltration,0,0,0,1,0,0,0,0,0,0,0,0,0,0
+00000002_000.png,22,No Finding,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+00000002_000.png,22,Fibrosis,0,0,0,0,0,0,0,0,0,0,0,1,0,0
+00000003_000.png,23,No Finding,0,0,0,0,0,0,0,0,0,0,0,0,0,0

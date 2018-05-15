@@ -1,0 +1,211 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: model-ingress
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: "SOME-STATIC-IP-NAME"
+    kubernetes.io/ingress.class: "gce"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /inference
+        backend:
+          serviceName: img-convert-svc
+          servicePort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: img-convert-svc
+spec:
+  selector:
+    app: img-convert-app
+  ports:
+  - protocol: "TCP"
+    port: 3000        # exposed internally to cluster
+    targetPort: 3000  # port the app is running on
+  type: NodePort
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: img-convert-autoscaler
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1beta1
+    kind: Deployment
+    name: img-convert-app
+  minReplicas: 3
+  maxReplicas: 12
+  targetCPUUtilizationPercentage: 70
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: img-convert-app
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: img-convert-app
+    spec:
+      nodeSelector:
+        tier: frontend
+      containers:
+      - name: img-convert
+        image: SOME-DOCKER-ACCOUNT/image-convert-frontend
+        ports:
+        - name: http
+          containerPort: 3000
+        env:
+        - name: AI_TRANSACTIONS_ENDPOINT
+          value: http://aimarketplace.azure-api.net/aitrans/transactions
+        - name: AI_TRANSACTIONS_KEY
+          value: b33b399399af48e3984743e081130e5c
+        - name: CHEST_XRAY_ENDPOINT
+          value: http://chest-xray-svc:8000/score
+        - name: MURA_ENDPOINT
+          value: http://mura-svc:8001/score
+        resources:
+          requests:
+            cpu: "300m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 60
+          periodSeconds: 60
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 60
+          periodSeconds: 20
+          timeoutSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chest-xray-svc
+spec:
+  selector:
+    app: chest-xray-app
+  ports:
+  - protocol: "TCP"
+    port: 8000        # exposed internally to cluster
+    targetPort: 8000  # port the app is running on
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: chest-xray-autoscaler
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1beta1
+    kind: Deployment
+    name: chest-xray-app
+  minReplicas: 3
+  maxReplicas: 18
+  targetCPUUtilizationPercentage: 70
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: chest-xray-app
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: chest-xray-app
+    spec:
+      nodeSelector:
+        tier: backend
+      containers:
+      - name: chest-xray-model
+        image: SOME-DOCKER-ACCOUNT/chest-xray-model-backend
+        ports:
+        - name: http
+          containerPort: 8000
+        resources:
+          requests:
+            cpu: "800m"
+        livenessProbe:
+          httpGet:
+            path: /alive
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 60
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 20
+          timeoutSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mura-svc
+spec:
+  selector:
+    app: mura-app
+  ports:
+  - protocol: "TCP"
+    port: 8001        # exposed internally to cluster
+    targetPort: 8001  # port the app is running on
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: mura-autoscaler
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1beta1
+    kind: Deployment
+    name: mura-app
+  minReplicas: 3
+  maxReplicas: 18
+  targetCPUUtilizationPercentage: 70
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: mura-app
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: mura-app
+    spec:
+      nodeSelector:
+        tier: backend
+      containers:
+      - name: mura-model
+        image: SOME-DOCKER-ACCOUNT/mura-model-backend
+        ports:
+        - name: http
+          containerPort: 8001
+        resources:
+          requests:
+            cpu: "800m"
+        livenessProbe:
+          httpGet:
+            path: /alive
+            port: 8001
+          initialDelaySeconds: 60
+          periodSeconds: 60
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8001
+          initialDelaySeconds: 60
+          periodSeconds: 20
+          timeoutSeconds: 5

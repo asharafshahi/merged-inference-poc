@@ -1,0 +1,17 @@
+{
+  "name": "image-convert-frontend",
+  "version": "1.0.0",
+  "description": "Nuance Image Converter Frontend",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@nuance/ai-marketplace-api": "git+https://github.com/asharafshahi/ai-marketplace-api.git",
+    "axios": "^0.18.0",
+    "dicom-parser": "1.7.6",
+    "dotenv": "^5.0.1",
+    "form-data": "^2.3.2",
+    "fs-extra": "^5.0.0",
+    "concat-stream": "^1.6.2"
+  }
+}
